@@ -1,8 +1,8 @@
-import gordongames
+import gordoncont
 import gym
-from gordongames.envs.ggames.ai import even_line_match, cluster_match
-from gordongames.envs.ggames.constants import DIRECTION2STR
-from gordongames.oracles import GordonOracle
+from gordoncont.ggames.ai import even_line_match, cluster_match
+from gordoncont.ggames.constants import DIRECTION2STR
+from gordoncont.oracles import GordonOracle
 from tqdm import tqdm
 import matplotlib.pyplot as plt
 import time
@@ -17,15 +17,15 @@ if __name__=="__main__":
         "harsh": True,
     }
     env_names = [
-        "gordongames-v0",
-        "gordongames-v1",
-        #"gordongames-v2",
-        "gordongames-v3",
-        "gordongames-v4",
-        "gordongames-v5",
-        "gordongames-v6",
-        "gordongames-v7",
-        "gordongames-v8",
+        "gordoncont-v0",
+        "gordoncont-v1",
+        "gordoncont-v2",
+        "gordoncont-v3",
+        "gordoncont-v4",
+        "gordoncont-v5",
+        "gordoncont-v6",
+        "gordoncont-v7",
+        "gordoncont-v8",
     ]
     start_time = time.time()
     for env_name in env_names:
@@ -34,7 +34,7 @@ if __name__=="__main__":
         env.seed(kwargs["seed"])
         oracle = GordonOracle(env_name)
         targ_distr = {i: 0 for i in range(1,10)}
-        rng = range(20)
+        rng = range(3)
         if not render: rng = tqdm(rng)
         for i in rng:
             obs = env.reset()
@@ -44,10 +44,7 @@ if __name__=="__main__":
                 actn = oracle(env)
                 if render:
                     print("Testing Env:", env_name)
-                    if actn < 5:
-                        print("actn:", DIRECTION2STR[actn])
-                    else:
-                        print("actn: GRAB")
+                    print("Actn:", actn)
                 prev_obs = obs
                 obs, rew, done, info = env.step(actn)
                 if render:
