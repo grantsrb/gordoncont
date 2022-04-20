@@ -10,8 +10,8 @@ import time
 if __name__=="__main__":
     render = True
     kwargs = {
-        "targ_range": (4,4),
-        "grid_size": (9,6),
+        "targ_range": (4,10),
+        "grid_size": (9,11),
         "pixel_density": 3,
         "seed": 123456,
         "harsh": True,
@@ -19,7 +19,7 @@ if __name__=="__main__":
     env_names = [
         "gordoncont-v0",
         "gordoncont-v1",
-        "gordoncont-v2",
+        #"gordoncont-v2",
         "gordoncont-v3",
         "gordoncont-v4",
         "gordoncont-v5",
@@ -33,7 +33,8 @@ if __name__=="__main__":
         env = gym.make(env_name, **kwargs)
         env.seed(kwargs["seed"])
         oracle = GordonOracle(env_name)
-        targ_distr = {i: 0 for i in range(1,10)}
+        trng = kwargs["targ_range"]
+        targ_distr = {i: 0 for i in range(trng[0],trng[1]+1)}
         rng = range(3)
         if not render: rng = tqdm(rng)
         for i in rng:
