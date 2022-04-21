@@ -16,7 +16,8 @@ class Grid:
     def __init__(self,
                  grid_size: int or tuple=(31,31),
                  pixel_density: int=1,
-                 divide: bool=True):
+                 divide: bool=True,
+                 egocentric: bool=False):
         """
         Args:
           grid_size: int or tuple (n_row, n_col)
@@ -32,6 +33,12 @@ class Grid:
             if true, a divider is drawn horizontally across the middle 
             of the grid. If even number of rows, the divder is rounded
             up after dividing the height by two
+          egocentric: bool
+              determines if perspective of the game will be centered
+              on the player. If true, the perspective is centered on
+              the player. It is important to note that the
+              observations double in size to ensure that all info in
+              the game is always accessible.
         """
         self._divided = divide
         if type(grid_size) == int:
@@ -40,6 +47,7 @@ class Grid:
             self._grid_size = grid_size
         self._pixel_density = pixel_density
         self._grid = self.make_grid(self._divided)
+        self._egocentric = egocentric
     
     @property
     def density(self):
@@ -49,6 +57,16 @@ class Grid:
             the number of pixels per unit
         """
         return self._pixel_density
+    
+    @property
+    def egocentric(self):
+        """
+        Returns:
+          is_egocentric: int
+            if true, then get_grid will return an egocentric perspective
+            centered on the argued coordinate.
+        """
+        return self._egocentric
     
     @property
     def is_divided(self):
@@ -370,4 +388,40 @@ class Grid:
             row_inbounds = row > self.middle_row and row < self.shape[0]
             return row_inbounds and self.col_inbounds(col)
         return self.is_inbounds(coord)
+
+    def get_grid(self, coord=None):
+        """
+        Returns a perspective of the grid dependent on the egocentric
+        flag
+
+        Args:
+            coord: None or list like (row, col)
+                if egocentric, this is the center coordinate for the
+                returned perspective
+        """
+        if self.egocentric:
+            return self.get_egocentric_perspective(coord)
+        return self.grid
+
+    def get_egocentric_perspective(self, coord):
+        """
+        Returns a perspective of the game that is centered
+        on the argued coord. The returned observation is also double
+        the original size of the grid to ensure that all info in
+        the game is always accessible.
+        """
+        shape = self.raw_shape
+        pad = np.zeros(shape[0]*2, shape[1]*2)
+        r_low =  shape[0]//2
+        r_high = shape[0]-r_low
+        c_low =  shape[1]//2
+        c_high = shape[1]-r_low
+
+        if coord is None: p = (r_low, c_low)
+        else: p = self.units2pixels(coord)
+        rdev = p[0]-r_low
+        cdev = p[1]-c_low
+        pad[r_low+rdev:-r_high+rdev,c_low+cdev:-c_high+cdev] = self.grid
+        return pad
+
 

@@ -94,7 +94,8 @@ class Register:
     """
     def __init__(self,
                  grid: Grid,
-                 n_targs: int):
+                 n_targs: int,
+                 egocentric=False):
         """
         Creates a player, a pile, and the specified number of targs.
         
@@ -103,6 +104,10 @@ class Register:
             the grid for the game
           n_targs: int
             the number of targets on the screen
+          egocentric: bool
+            if true, the grid will always be centered on the player
+            pixel. In this case, the game is padded such that it
+            remains fully visible to the player.
         """
         self.grid = grid
         self.player = GameObject(obj_type=PLAYER, color=COLORS[PLAYER])
@@ -127,7 +132,7 @@ class Register:
         self.invsbl_list = []
         self.rand = np.random.default_rng(int(time.time()))
         # Not yet implemented
-        self.egocentric = False
+        self.egocentric = egocentric
 
     @property
     def n_targs(self):

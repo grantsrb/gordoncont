@@ -116,7 +116,7 @@ if __name__ == "__main__":
             register.step(xycoord, 0)
             print("new player coord", register.player.coord)
             print()
-            plt.imshow(register.grid.grid)
+            plt.imshow(register.grid.get_grid(register.player.coord))
             plt.show()
 
     grid.reset()

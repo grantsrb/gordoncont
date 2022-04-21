@@ -20,6 +20,7 @@ class Controller:
                  targ_range: tuple=(1,10),
                  grid_size: tuple=(31,31),
                  pixel_density: int=1,
+                 egocentric: bool=False,
                  *args, **kwargs):
         """
         targ_range: tuple (Low, High) (inclusive)
@@ -30,6 +31,12 @@ class Controller:
             the dimensions of the grid in grid units
         pixel_density: int
             the side length of a single grid unit in pixels
+        egocentric: bool
+            determines if perspective of the game will be centered
+            on the player. If true, the perspective is centered on
+            the player. It is important to note that the
+            observations double in size to ensure that all info in
+            the game is always accessible.
         """
         if type(targ_range) == int:
             targ_range = (targ_range, targ_range)
@@ -38,6 +45,7 @@ class Controller:
         self._targ_range = targ_range
         self._grid_size = grid_size
         self._pixel_density = pixel_density
+        self._egocentric = egocentric
         self.is_animating = False
         self.rand = np.random.default_rng(int(time.time()))
         self.n_steps = 0
@@ -45,6 +53,10 @@ class Controller:
     @property
     def targ_range(self):
         return self._targ_range
+
+    @property
+    def egocentric(self):
+        return self._egocentric
 
     @property
     def grid_size(self):
@@ -133,7 +145,8 @@ class Controller:
         elif event == STEP:
             done = False
             rew = 0
-        return self.grid.grid, rew, done, info
+        coord = self.register.player.coord
+        return self.grid.get_grid(coord), rew, done, info
 
     def reset(self, n_targs=None):
         """
@@ -516,7 +529,8 @@ class BriefPresentationController(ClusterMatchController):
         elif event == STEP:
             done = False
             rew = 0
-        return self.grid.grid, rew, done, info
+        coord = self.register.player.coord
+        return self.grid.get_grid(coord), rew, done, info
 
 class NutsInCanController(EvenLineMatchController):
     """
@@ -617,7 +631,8 @@ class NutsInCanController(EvenLineMatchController):
         elif event == STEP:
             done = False
             rew = 0
-        return self.grid.grid, rew, done, info
+        coord = self.register.player.coord
+        return self.grid.get_grid(coord), rew, done, info
 
     def calculate_reward(self, harsh=False):
         """
@@ -738,7 +753,8 @@ class VisNutsController(EvenLineMatchController):
         elif event == STEP:
             done = False
             rew = 0
-        return self.grid.grid, rew, done, info
+        coord = self.register.player.coord
+        return self.grid.grid(coord), rew, done, info
 
     def calculate_reward(self, harsh=False):
         """
