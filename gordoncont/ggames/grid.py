@@ -359,7 +359,7 @@ class Grid:
         """
         row,col = coord
         return self.row_inhalfbounds(row) and self.col_inbounds(col)
-    
+
     def is_playable(self, coord):
         """
         Takes a coord and determines if it is within the divided
@@ -372,6 +372,22 @@ class Grid:
         """
         if self.is_divided: return self.is_inhalfbounds(coord)
         return self.is_inbounds(coord)
+
+    def clip_to_playable(self, coord):
+        """
+        Takes a coord and clips it to be within the playable boundaries
+        of the grid.
+
+        Args:
+          coord: list like (row, col)
+            the coordinate in grid units
+        """
+        if self.is_divided:
+            row = min(max(0, coord[0]), self.middle_row-1)
+        else:
+            row = min(max(0, coord[0]), self.shape[0]-1)
+        col = min(max(0,coord[1]), self.shape[1]-1)
+        return (row,col)
 
     def is_below_divider(self, coord):
         """
@@ -410,18 +426,18 @@ class Grid:
         the original size of the grid to ensure that all info in
         the game is always accessible.
         """
-        shape = self.raw_shape
-        pad = np.zeros(shape[0]*2, shape[1]*2)
+        shape = self.pixel_shape
+        pad = np.zeros((shape[0]*2, shape[1]*2))
         r_low =  shape[0]//2
         r_high = shape[0]-r_low
         c_low =  shape[1]//2
-        c_high = shape[1]-r_low
+        c_high = shape[1]-c_low
 
         if coord is None: p = (r_low, c_low)
         else: p = self.units2pixels(coord)
         rdev = p[0]-r_low
         cdev = p[1]-c_low
-        pad[r_low+rdev:-r_high+rdev,c_low+cdev:-c_high+cdev] = self.grid
+        pad[r_low-rdev:-r_high-rdev,c_low-cdev:-c_high-cdev]=self.grid
         return pad
 
 

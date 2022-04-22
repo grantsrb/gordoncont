@@ -287,7 +287,8 @@ class Register:
         Args:
           xycoord: tuple of floats in the range [-1,1](lateral,vertical)
             the xycoord is the desired coordinate of the grid centered
-            at the center of the playable space on the grid.
+            at the center of the playable space on the grid or centered
+            on the player if the egocentric flag is marked true.
             coordinates are rounded to the nearest integer when
             deciding which discrete location goes with the coord
           grab: int [0,1]
@@ -617,6 +618,7 @@ class Register:
         """
         # Need to convert from x,y to row,col with the appropriate
         # dimensions for the current grid
+
         new_coord = self.xy2coord(xycoord)
         if self.egocentric:
             coord = tuple(coord)
@@ -641,17 +643,29 @@ class Register:
             coord: tuple of ints (row, col)
         """
         shape = self.grid.shape
-        if self.grid.is_divided:
-            mid = self.grid.middle_row
-            xycoord = (
-                (coord[1]-(shape[1]-1)/2)/((shape[1]-1)/2),
-                (coord[0]-(mid-1)/2)/((mid-1)/2)
-            )
+        if not self.egocentric:
+            if self.grid.is_divided:
+                mid = self.grid.middle_row
+                xycoord = (
+                    (coord[1]-(shape[1]-1)/2)/((shape[1]-1)/2),
+                    (coord[0]-(mid-1)/2)/((mid-1)/2)
+                )
+            else:
+                xycoord = (
+                    (coord[1]-(shape[1]-1)/2)/((shape[1]-1)/2),
+                    (coord[0]-(shape[0]-1)/2)/((shape[0]-1)/2)
+                )
         else:
-            xycoord = (
-                (coord[1]-(shape[1]-1)/2)/((shape[1]-1)/2),
-                (coord[0]-(shape[0]-1)/2)/((shape[0]-1)/2)
-            )
+            if self.grid.is_divided:
+                xycoord = (
+                    float(coord[1])/shape[1],
+                    float(coord[0])/(self.grid.middle_row-1)
+                )
+            else:
+                xycoord = (
+                    float(coord[1])/shape[1],
+                    float(coord[0])/shape[0]
+                )
         return xycoord
 
     def xy2coord(self, xycoord):
@@ -670,17 +684,29 @@ class Register:
             coord: tuple of ints (row, col)
         """
         shape = self.grid.shape
-        if self.grid.is_divided:
-            mid = self.grid.middle_row
-            coord = (
-                int(round((mid-1)/2+xycoord[1]*(mid-1)/2)),
-                int(round((shape[1]-1)/2+xycoord[0]*(shape[1]-1)/2)),
-            )
+        if not self.egocentric:
+            if self.grid.is_divided:
+                mid = self.grid.middle_row
+                coord = (
+                  int(round((mid-1)/2+xycoord[1]*(mid-1)/2)),
+                  int(round((shape[1]-1)/2+xycoord[0]*(shape[1]-1)/2)),
+                )
+            else:
+                coord = (
+                  int(round((shape[0]-1)/2+xycoord[1]*(shape[0]-1)/2)),
+                  int(round((shape[1]-1)/2+xycoord[0]*(shape[1]-1)/2)),
+                )
         else:
-            coord = (
-                int(round((shape[0]-1)/2+xycoord[1]*(shape[0]-1)/2)),
-                int(round((shape[1]-1)/2+xycoord[0]*(shape[1]-1)/2)),
-            )
+            if self.grid.is_divided:
+                coord = (
+                    int(round(xycoord[1]*(self.grid.middle_row-1))),
+                    int(round(xycoord[0]*shape[1])),
+                )
+            else:
+                coord = (
+                    int(round(xycoord[1]*shape[0])),
+                    int(round(xycoord[0]*shape[1])),
+                )
         return coord
 
     def move_object(self, game_object: GameObject, coord: tuple=None):
@@ -739,6 +765,7 @@ class Register:
             game_object does not change
         """
         coord = self.apply_direction(self.player.coord, xycoord)
+        coord = self.grid.clip_to_playable(coord)
         if self.grid.is_playable(coord):
             return self.move_object(self.player, coord)
         else:

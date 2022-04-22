@@ -20,6 +20,7 @@ class Controller:
                  targ_range: tuple=(1,10),
                  grid_size: tuple=(31,31),
                  pixel_density: int=1,
+                 harsh: bool=False,
                  egocentric: bool=False,
                  *args, **kwargs):
         """
@@ -31,6 +32,18 @@ class Controller:
             the dimensions of the grid in grid units
         pixel_density: int
             the side length of a single grid unit in pixels
+        harsh: bool
+            if true, returns a postive 1 reward only upon successful
+            completion of an episode. if false, returns the
+            number of correct target columns divided by the total
+            number of columns minus the total number of
+            incorrect columns divided by the total number of
+            columns.
+
+            harsh == False:
+                rew = n_correct/n_total - n_incorrect/n_total
+            harsh == True:
+                rew = n_correct == n_targs
         egocentric: bool
             determines if perspective of the game will be centered
             on the player. If true, the perspective is centered on
@@ -46,9 +59,21 @@ class Controller:
         self._grid_size = grid_size
         self._pixel_density = pixel_density
         self._egocentric = egocentric
+        self.harsh = harsh
         self.is_animating = False
         self.rand = np.random.default_rng(int(time.time()))
         self.n_steps = 0
+        self.grid = Grid(
+            grid_size=self.grid_size,
+            pixel_density=self.density,
+            divide=True,
+            egocentric=self.egocentric
+        )
+        self.register = Register(
+            self.grid,
+            n_targs=1,
+            egocentric=self.egocentric
+        )
 
     @property
     def targ_range(self):
@@ -162,33 +187,6 @@ class EvenLineMatchController(Controller):
     The agent must align a single item along the column of each of the
     target objects.
     """
-    def __init__(self, harsh: bool=False, *args, **kwargs):
-        """
-        See base Controller class for details into arguments.
-        
-        Args:
-            harsh: bool
-                if true, returns a postive 1 reward only upon successful
-                completion of an episode. if false, returns the
-                number of correct target columns divided by the total
-                number of columns minus the total number of
-                incorrect columns divided by the total number of
-                columns.
-
-                harsh == False:
-                    rew = n_correct/n_total - n_incorrect/n_total
-                harsh == True:
-                    rew = n_correct == n_targs
-        """
-        super().__init__(*args, **kwargs)
-        self.grid = Grid(
-            grid_size=self.grid_size,
-            pixel_density=self.density,
-            divide=True
-        )
-        self.register = Register(self.grid, n_targs=1)
-        self.harsh = harsh
-
     def init_variables(self, n_targs=None):
         """
         This function should be called everytime the environment starts
@@ -754,7 +752,7 @@ class VisNutsController(EvenLineMatchController):
             done = False
             rew = 0
         coord = self.register.player.coord
-        return self.grid.grid(coord), rew, done, info
+        return self.grid.get_grid(coord), rew, done, info
 
     def calculate_reward(self, harsh=False):
         """
