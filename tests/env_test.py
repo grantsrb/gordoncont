@@ -15,17 +15,17 @@ if __name__=="__main__":
         "pixel_density": 3,
         "seed": 123456,
         "harsh": True,
-        "egocentric": True,
+        "egocentric": False,
     }
     env_names = [
-        #"gordoncont-v0",
-        #"gordoncont-v1",
-        ##"gordoncont-v2",
-        #"gordoncont-v3",
-        #"gordoncont-v4",
-        #"gordoncont-v5",
-        #"gordoncont-v6",
-        #"gordoncont-v7",
+        "gordoncont-v0",
+        "gordoncont-v1",
+        #"gordoncont-v2",
+        "gordoncont-v3",
+        "gordoncont-v4",
+        "gordoncont-v5",
+        "gordoncont-v6",
+        "gordoncont-v7",
         "gordoncont-v8",
     ]
     start_time = time.time()
