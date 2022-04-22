@@ -133,6 +133,7 @@ class Register:
         self.rand = np.random.default_rng(int(time.time()))
         # Not yet implemented
         self.egocentric = egocentric
+        self.xymag = 0.8
 
     @property
     def n_targs(self):
@@ -628,43 +629,45 @@ class Register:
     def coord2xy(self, coord):
         """
         Converts a unit row,col coordinate ranging from 0 to the
-        maximum size of the playable grid minus 1 to a float xy coordinate
-        ranging from -1 to 1 horizontally and vertically respectively.
+        maximum size of the playable grid minus 1 to a float xy
+        coordinate ranging from -.8 to .8 horizontally and vertically
+        respectively.
 
         This is the inverse to `xy2coord`
 
         Args:
-          xycoord: tuple of floats in the range [-1,1] (lateral,vertical)
+          coord: tuple of ints (row, col)
+        Returns:
+          xycoord: tuple of floats [-mag,mag](lateral,vertical)
             the xycoord is the desired coordinate of the grid centered
             at the center of the playable space on the grid.
             coordinates are rounded to the nearest integer when
-            deciding which discrete location goes with the coord
-        Returns:
-            coord: tuple of ints (row, col)
+            deciding which discrete location goes with the coord.
+            mag is determined by the `self.xymag` member variable
         """
         shape = self.grid.shape
         if not self.egocentric:
             if self.grid.is_divided:
                 mid = self.grid.middle_row
                 xycoord = (
-                    (coord[1]-(shape[1]-1)/2)/((shape[1]-1)/2),
-                    (coord[0]-(mid-1)/2)/((mid-1)/2)
+                  self.xymag*(coord[1]-(shape[1]-1)/2)/((shape[1]-1)/2),
+                  self.xymag*(coord[0]-(mid-1)/2)/((mid-1)/2)
                 )
             else:
                 xycoord = (
-                    (coord[1]-(shape[1]-1)/2)/((shape[1]-1)/2),
-                    (coord[0]-(shape[0]-1)/2)/((shape[0]-1)/2)
+                  self.xymag*(coord[1]-(shape[1]-1)/2)/((shape[1]-1)/2),
+                  self.xymag*(coord[0]-(shape[0]-1)/2)/((shape[0]-1)/2)
                 )
         else:
             if self.grid.is_divided:
                 xycoord = (
-                    float(coord[1])/shape[1],
-                    float(coord[0])/(self.grid.middle_row-1)
+                    self.xymag*float(coord[1])/shape[1],
+                    self.xymag*float(coord[0])/(self.grid.middle_row-1)
                 )
             else:
                 xycoord = (
-                    float(coord[1])/shape[1],
-                    float(coord[0])/shape[0]
+                    self.xymag*float(coord[1])/shape[1],
+                    self.xymag*float(coord[0])/shape[0]
                 )
         return xycoord
 
@@ -675,37 +678,39 @@ class Register:
         from 0 to the maximum size of the grid minus 1.
 
         Args:
-          xycoord: tuple of floats in the range [-1,1] (lateral,vertical)
+          xycoord: tuple of floats in range [-mag,mag](lateral,vertical)
             the xycoord is the desired coordinate of the grid centered
             at the center of the playable space on the grid.
             coordinates are rounded to the nearest integer when
             deciding which discrete location goes with the coord
+            mag is determined by the `self.xymag` member variable
         Returns:
             coord: tuple of ints (row, col)
         """
         shape = self.grid.shape
+        xy = [el/self.xymag for el in xycoord]
         if not self.egocentric:
             if self.grid.is_divided:
                 mid = self.grid.middle_row
                 coord = (
-                  int(round((mid-1)/2+xycoord[1]*(mid-1)/2)),
-                  int(round((shape[1]-1)/2+xycoord[0]*(shape[1]-1)/2)),
+                  int(round((mid-1)/2+xy[1]*(mid-1)/2)),
+                  int(round((shape[1]-1)/2+xy[0]*(shape[1]-1)/2)),
                 )
             else:
                 coord = (
-                  int(round((shape[0]-1)/2+xycoord[1]*(shape[0]-1)/2)),
-                  int(round((shape[1]-1)/2+xycoord[0]*(shape[1]-1)/2)),
+                  int(round((shape[0]-1)/2+xy[1]*(shape[0]-1)/2)),
+                  int(round((shape[1]-1)/2+xy[0]*(shape[1]-1)/2)),
                 )
         else:
             if self.grid.is_divided:
                 coord = (
-                    int(round(xycoord[1]*(self.grid.middle_row-1))),
-                    int(round(xycoord[0]*shape[1])),
+                    int(round(xy[1]*(self.grid.middle_row-1))),
+                    int(round(xy[0]*shape[1])),
                 )
             else:
                 coord = (
-                    int(round(xycoord[1]*shape[0])),
-                    int(round(xycoord[0]*shape[1])),
+                    int(round(xy[1]*shape[0])),
+                    int(round(xy[0]*shape[1])),
                 )
         return coord
 
