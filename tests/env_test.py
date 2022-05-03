@@ -8,7 +8,8 @@ import matplotlib.pyplot as plt
 import time
 
 if __name__=="__main__":
-    render = True
+    render = False
+    n_loops = 100
     kwargs = {
         "targ_range": (4,10),
         "grid_size": (9,11),
@@ -37,7 +38,7 @@ if __name__=="__main__":
         oracle = GordonOracle(env_name)
         trng = kwargs["targ_range"]
         targ_distr = {i: 0 for i in range(trng[0],trng[1]+1)}
-        rng = range(3)
+        rng = range(n_loops)
         if not render: rng = tqdm(rng)
         for i in rng:
             obs = env.reset()
