@@ -16,6 +16,7 @@ if __name__=="__main__":
         "seed": 123456,
         "harsh": True,
         "egocentric": False,
+        "hold_outs": {5,6,7,8},
     }
     env_names = [
         "gordoncont-v0",
