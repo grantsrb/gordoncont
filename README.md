@@ -150,6 +150,8 @@ The agent receives a +1 reward if the agent removes the exact number of items pl
 - `targ_range` - A range of possible initial target object counts for each game (inclusive). Must be less than `grid_size`. 
 - `egocentric` - If true, the perspective of the game will always be centered on the player. Be warned that this will double
                 the size of the grid so as to maintain full information at every step of the game.
+-  hold\_outs  - a set or list of target counts that should not be considered when
+                creating a new game
 
 Each of these options are member variables of the environment and will come into effect after the environment is reset. For example, if you wanted to use 1-5 targets in game A, you can be set this using the following code:
 

@@ -63,8 +63,9 @@ class Controller:
         self._grid_size = grid_size
         self._pixel_density = pixel_density
         self._egocentric = egocentric
-        self._hold_outs = hold_outs
-        assert len(set(range(targ_range[0],targ_range[1]+1))-hold_outs)>0
+        self._hold_outs = set(hold_outs)
+        trgs = set(range(targ_range[0],targ_range[1]+1))
+        assert len(trgs-self._hold_outs)>0
         self.harsh = harsh
         self.is_animating = False
         self.rand = np.random.default_rng(int(time.time()))
