@@ -63,6 +63,7 @@ class GordonGame(gym.Env):
             self.targ_range = (targ_range,targ_range)
         self.max_items = self.targ_range[-1]*3
         self.harsh = harsh
+        if hold_outs is None: hold_outs = set()
         self.hold_outs = set(hold_outs)
         self.viewer = None
         self.action_space = Box((3,))
