@@ -25,6 +25,7 @@ class GordonGame(gym.Env):
                  pixel_density=5,
                  harsh=True,
                  egocentric=False,
+                 max_steps=None,
                  hold_outs=set(),
                  *args, **kwargs):
         """
@@ -43,6 +44,8 @@ class GordonGame(gym.Env):
                 the player. It is important to note that the
                 observations double in size to ensure that all info in
                 the game is always accessible.
+            max_steps: positive int or None
+                the maximum steps allowed per episode
             hold_outs: set of ints
                 a set of integer values representing numbers of targets
                 that should not be sampled when sampling targets
@@ -57,7 +60,9 @@ class GordonGame(gym.Env):
         # used in calculations of self.max_steps
         self.max_step_base = self.grid_size[0]//2*self.grid_size[1]*2
         # gets set in reset(), limits number of steps per episode
-        self.max_steps = 0
+        self.master_max_steps = max_steps
+        self.max_steps = max_steps
+
         self.targ_range = targ_range
         if type(targ_range) == int:
             self.targ_range = (targ_range,targ_range)
@@ -99,6 +104,21 @@ class GordonGame(gym.Env):
             self.is_grabbing = False
             grab = False
         return grab
+
+    def reset_max_steps(self, max_steps=None):
+        """
+        Needs controller before calling!!
+
+        Args:
+            max_steps: positive int or None
+                the maximum number of steps per episode
+        """
+        if max_steps is None or max_steps<=0:
+            if self.master_max_steps is None or self.master_max_steps<=0:
+                m = (self.controller.n_targs+1)*self.max_step_base
+                self.max_steps = m
+            else: self.max_steps = self.master_max_steps
+        else: self.max_steps = max_steps
 
     def step(self, action):
         """
@@ -168,10 +188,10 @@ class GordonGame(gym.Env):
             if len(memo[o]) > 0: return TYPE2PRIORITY[o]
         return 0
 
-    def reset(self, n_targs=None, *args, **kwargs):
+    def reset(self, n_targs=None, max_steps=None, *args, **kwargs):
         self.controller.rand = self.rand
         self.controller.reset(n_targs=n_targs)
-        self.max_steps = (self.controller.n_targs+1)*self.max_step_base
+        self.reset_max_steps(max_steps)
         self.is_grabbing = False
         self.step_count = 0
         coord = self.controller.register.player.coord
